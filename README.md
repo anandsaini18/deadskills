@@ -1,12 +1,4 @@
-```
-██████╗ ███████╗ █████╗ ██████╗ ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗
-██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝
-██║  ██║█████╗  ███████║██║  ██║███████╗█████╔╝ ██║██║     ██║     ███████╗
-██║  ██║██╔══╝  ██╔══██║██║  ██║╚════██║██╔═██╗ ██║██║     ██║     ╚════██║
-██████╔╝███████╗██║  ██║██████╔╝███████║██║  ██╗██║███████╗███████╗███████║
-╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
-               find the agent skills you never use
-```
+![deadskills — Find the agent skills you never use](assets/banner.png)
 
 Every installed skill adds its name and description to every prompt you send. That cost is paid on every message, whether the skill gets used or not. `deadskills` reads your local transcripts and shows which skills earn their seat, and which ones are probably safe to remove.
 
