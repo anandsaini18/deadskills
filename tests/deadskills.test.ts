@@ -1,6 +1,7 @@
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   createClaudeCodeAdapter,
   normalizeSkillName,
@@ -11,8 +12,11 @@ import { createCodexAdapter, parseCodexLine } from "../src/adapters/codex.js";
 import { buildReport, parseSince } from "../src/analysis/report.js";
 import { discoverSkills, parseSkillMd, type InstalledSkill } from "../src/discovery/skills.js";
 import { parseArgs } from "../src/cli.js";
+import { formatReport, formatWordmark, humanTokens } from "../src/output/format.js";
 
 const fixturesRoot = dirname(fileURLToPath(import.meta.url));
+const projectRoot = join(fixturesRoot, "..");
+const builtCli = join(projectRoot, "dist", "cli.js");
 const claudeFixtures = join(fixturesRoot, "fixtures", "claude");
 const codexFixtures = join(fixturesRoot, "fixtures", "codex");
 
@@ -272,5 +276,116 @@ describe("cli arg parsing", () => {
       claudeDir: "/x",
     });
     expect(parseArgs(["-h"])).toMatchObject({ help: true });
+  });
+});
+
+describe("terminal wordmark", () => {
+  it("renders the exact ANSI Shadow DEADSKILLS banner", () => {
+    const expected = [
+      "██████╗ ███████╗ █████╗ ██████╗ ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗",
+      "██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝",
+      "██║  ██║█████╗  ███████║██║  ██║███████╗█████╔╝ ██║██║     ██║     ███████╗",
+      "██║  ██║██╔══╝  ██╔══██║██║  ██║╚════██║██╔═██╗ ██║██║     ██║     ╚════██║",
+      "██████╔╝███████╗██║  ██║██████╔╝███████║██║  ██╗██║███████╗███████╗███████║",
+      "╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝",
+      "💀 find the agent skills you never use",
+    ].join("\n");
+
+    expect(formatWordmark()).toBe(expected);
+    expect(expected.split("\n").every((line) => line.length <= 80)).toBe(true);
+  });
+});
+
+describe("report formatting", () => {
+  it.each([
+    [49, "49"],
+    [999, "999"],
+    [1500, "1.5K"],
+    [24099, "24K"],
+    [786845, "787K"],
+    [999600, "1M"],
+    [3525588, "3.5M"],
+    [7958512, "8M"],
+  ])("humanTokens %d → %s", (input, expected) => {
+    expect(humanTokens(input)).toBe(expected);
+  });
+
+  it("renders a rule header, separators, humanized tokens, and tamed unmatched list", async () => {
+    const adapter = createClaudeCodeAdapter(claudeFixtures);
+    const skills = discoverSkills(claudeSkillRoots);
+    const { events, health } = await adapter.loadEvents();
+    const report = buildReport(skills, events, adapter.name, health);
+    report.sessions = 1234;
+    report.assistantTurns = 34296;
+    report.skills.find((s) => s.status === "active")!.estimatedTotalTokens = 3525588;
+    report.unmatchedInvocations = Object.fromEntries(
+      Array.from({ length: 10 }, (_, i) => [`cmd-${i}`, i + 1])
+    );
+
+    const out = formatReport(report);
+    // dim rule header instead of the old "deadskills · agent" line
+    expect(out).toContain("── claude-code ─");
+    expect(out).not.toContain("deadskills ·");
+    // thousands separators
+    expect(out).toContain("1,234 sessions · 34,296 turns analyzed");
+    // humanized token column
+    expect(out).toContain("~3.5M tok");
+    expect(out).not.toContain("3525588");
+    // unmatched: honest label, sorted descending, top 8, remainder summarized
+    expect(out).toContain("Unmatched invocations (may include built-in commands):");
+    expect(out).toContain("cmd-9 (10×), cmd-8 (9×)");
+    expect(out).toContain("… and 2 more (run with --json for full list)");
+    expect(out).not.toContain("cmd-1 (2×)");
+  });
+});
+
+describe("built CLI output", () => {
+  beforeAll(() => {
+    execFileSync("npm", ["run", "build", "--silent"], {
+      cwd: projectRoot,
+      stdio: "pipe",
+    });
+  });
+
+  function runCli(...args: string[]): string {
+    return execFileSync(
+      process.execPath,
+      [
+        builtCli,
+        ...args,
+        "--claude-dir",
+        claudeFixtures,
+        "--codex-dir",
+        join(fixturesRoot, "fixtures", "missing-codex"),
+      ],
+      { cwd: projectRoot, encoding: "utf8" }
+    );
+  }
+
+  it.each([
+    { label: "default", args: [] },
+    { label: "dead", args: ["dead"] },
+    { label: "doctor", args: ["doctor"] },
+  ])(
+    "prints the wordmark exactly once for $label invocation",
+    ({ args }) => {
+      const output = runCli(...args);
+      expect(output.split(formatWordmark())).toHaveLength(2);
+    }
+  );
+
+  it("keeps JSON output banner-free and machine-parseable", () => {
+    const output = runCli("--json");
+    expect(output).not.toContain(formatWordmark());
+    expect(JSON.parse(output)).toMatchObject([{ agent: "claude-code" }]);
+  });
+
+  it("keeps help banner-free", () => {
+    const output = execFileSync(process.execPath, [builtCli, "--help"], {
+      cwd: projectRoot,
+      encoding: "utf8",
+    });
+    expect(output).toContain("Usage");
+    expect(output).not.toContain(formatWordmark());
   });
 });

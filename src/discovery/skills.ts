@@ -5,6 +5,8 @@ import type { SkillRoot } from "../adapters/types.js";
 
 export interface InstalledSkill {
   name: string;
+  /** Namespaced name, e.g. "my-plugin:pdf", when the skill comes from a plugin. */
+  qualifiedName?: string;
   description: string;
   /** "personal" | "project" | "plugin" */
   scope: string;
@@ -23,13 +25,13 @@ export interface InstalledSkill {
 export function discoverSkills(roots: SkillRoot[]): InstalledSkill[] {
   const skills: InstalledSkill[] = [];
   const seen = new Set<string>();
-  for (const { dir, scope } of roots) {
+  for (const { dir, scope, namespace } of roots) {
     if (!existsSync(dir)) continue;
     for (const entry of safeReaddir(dir)) {
       const skillMd = join(dir, entry, "SKILL.md");
       if (!existsSync(skillMd) || seen.has(skillMd)) continue;
       seen.add(skillMd);
-      const skill = parseSkillMd(skillMd, scope);
+      const skill = parseSkillMd(skillMd, scope, namespace);
       if (skill) skills.push(skill);
     }
   }
@@ -37,7 +39,11 @@ export function discoverSkills(roots: SkillRoot[]): InstalledSkill[] {
 }
 
 /** Parse SKILL.md frontmatter. Exported for tests. */
-export function parseSkillMd(path: string, scope: string): InstalledSkill | null {
+export function parseSkillMd(
+  path: string,
+  scope: string,
+  namespace?: string
+): InstalledSkill | null {
   let raw: string;
   try {
     raw = readFileSync(path, "utf8");
@@ -51,6 +57,7 @@ export function parseSkillMd(path: string, scope: string): InstalledSkill | null
   if (!name) return null;
   return {
     name,
+    qualifiedName: namespace ? `${namespace}:${name}` : undefined,
     description: description ?? "",
     scope,
     path,

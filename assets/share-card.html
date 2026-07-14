@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>deadskills — share card</title>
+<!--
+  deadskills share card · 1200×675 (16:9, timeline-safe)
+
+  Usage (manual, until `deadskills share` automates this):
+    1. Run: npx deadskills with the JSON flag > report.json
+    2. Paste your numbers into the REPORT const below (no paths/names needed —
+       the card is redacted by design: counts and totals only).
+    3. Open this file in a browser and screenshot the card
+       (or: npx playwright screenshot share-card.html card.png --viewport-size=1200,675)
+
+  Design: terminal aesthetic per design brief — near-black bg, ANSI accent
+  colors, monospace data, the USER'S numbers are the hero, branding stays small.
+-->
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --dim: #8b949e;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; }
+  .card {
+    width: 1200px;
+    height: 675px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "JetBrains Mono", "SF Mono", "Cascadia Code", Consolas, monospace;
+    display: flex;
+    flex-direction: column;
+    padding: 56px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* faint scanline texture, terminal vibe without noise */
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent 0 3px, rgba(255,255,255,0.012) 3px 4px);
+    pointer-events: none;
+  }
+  .prompt-line { color: var(--dim); font-size: 22px; letter-spacing: 0.5px; }
+  .prompt-line .dollar { color: var(--green); }
+
+  .hero { margin-top: 40px; }
+  .hero .num {
+    font-size: 132px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--yellow);
+    letter-spacing: -3px;
+  }
+  .hero .label {
+    margin-top: 14px;
+    font-size: 26px;
+    color: var(--text);
+  }
+  .hero .label em { color: var(--dim); font-style: normal; }
+
+  .tiers {
+    display: flex;
+    gap: 24px;
+    margin-top: 52px;
+  }
+  .tier {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 26px;
+  }
+  .tier .count { font-size: 54px; font-weight: 700; line-height: 1; }
+  .tier .name { margin-top: 8px; font-size: 20px; }
+  .tier .hint { margin-top: 4px; font-size: 15px; color: var(--dim); }
+  .tier.active .count, .tier.active .name { color: var(--green); }
+  .tier.zombie .count, .tier.zombie .name { color: var(--yellow); }
+  .tier.dead .count,   .tier.dead .name   { color: var(--red); }
+
+  .footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 20px;
+  }
+  .footer .cta { color: var(--text); }
+  .footer .cta .dollar { color: var(--green); }
+  .footer .brand { color: var(--dim); font-size: 18px; }
+  .footer .brand .skull { color: var(--red); }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="prompt-line"><span class="dollar">$</span> npx deadskills · <span id="agent">claude-code</span> · <span id="sessions">42</span> sessions analyzed</div>
+
+  <div class="hero">
+    <div class="num" id="tax">~4,180</div>
+    <div class="label">tokens added to <em>every prompt</em> by <span id="total">31</span> installed skills</div>
+  </div>
+
+  <div class="tiers">
+    <div class="tier active">
+      <div class="count" id="active">14</div>
+      <div class="name">active</div>
+      <div class="hint">earning their keep</div>
+    </div>
+    <div class="tier zombie">
+      <div class="count" id="zombies">🧟 3</div>
+      <div class="name">zombies</div>
+      <div class="hint">silent for 90+ days</div>
+    </div>
+    <div class="tier dead">
+      <div class="count" id="dead">💀 14</div>
+      <div class="name">dead</div>
+      <div class="hint">never invoked, pure tax</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="cta"><span class="dollar">$</span> npx deadskills — what's YOUR context tax?</div>
+    <div class="brand"><span class="skull">💀</span> deadskills · 100% local · zero deps</div>
+  </div>
+</div>
+
+<script>
+  // Paste values from `npx deadskills --json` (first report in the array).
+  // Redacted by design: only counts and totals, no skill names or paths.
+  const REPORT = {
+    agent: "claude-code",
+    sessions: 42,
+    contextTaxPerPrompt: 4180,
+    skillsTotal: 31,
+    active: 14,
+    zombies: 3,
+    dead: 14,
+  };
+  const $ = (id) => document.getElementById(id);
+  $("agent").textContent = REPORT.agent;
+  $("sessions").textContent = REPORT.sessions;
+  $("tax").textContent = "~" + REPORT.contextTaxPerPrompt.toLocaleString();
+  $("total").textContent = REPORT.skillsTotal;
+  $("active").textContent = REPORT.active;
+  $("zombies").textContent = "🧟 " + REPORT.zombies;
+  $("dead").textContent = "💀 " + REPORT.dead;
+</script>
+</body>
+</html>

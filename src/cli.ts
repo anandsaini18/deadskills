@@ -1,7 +1,9 @@
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { detectedAdapters } from "./adapters/index.js";
-import { buildReport, type Report } from "./analysis/report.js";
+import { buildReport, parseSince, type Report } from "./analysis/report.js";
 import { discoverSkills } from "./discovery/skills.js";
-import { formatDead, formatDoctor, formatReport } from "./output/format.js";
+import { formatDead, formatDoctor, formatReport, formatWordmark } from "./output/format.js";
 
 const HELP = `
   💀 deadskills — find the agent skills you never use
@@ -13,6 +15,7 @@ const HELP = `
 
   Options
     --json            Canonical JSON report array (schema/report.schema.json)
+    --since <when>    Only count usage since e.g. 30d, 8w, 6m, or 2026-01-01
     --agent <name>    Only this agent (claude-code | codex)
     --claude-dir <p>  Override Claude data dir (default: ~/.claude)
     --codex-dir <p>   Override Codex data dir (default: ~/.codex)
@@ -27,6 +30,7 @@ interface Args {
   command?: string;
   json: boolean;
   agent?: string;
+  since?: string;
   claudeDir?: string;
   codexDir?: string;
   project?: string;
@@ -41,6 +45,7 @@ export function parseArgs(argv: string[]): Args {
     if (a === "--json") args.json = true;
     else if (a === "--help" || a === "-h") args.help = true;
     else if (a === "--agent") args.agent = argv[++i];
+    else if (a === "--since") args.since = argv[++i];
     else if (a === "--claude-dir") args.claudeDir = argv[++i];
     else if (a === "--codex-dir") args.codexDir = argv[++i];
     else if (a === "--project") args.project = argv[++i];
@@ -54,6 +59,16 @@ async function main() {
   if (args.help) {
     console.log(HELP);
     return;
+  }
+
+  let since: Date | undefined;
+  if (args.since) {
+    const parsed = parseSince(args.since);
+    if (!parsed) {
+      console.error(`Cannot parse --since "${args.since}" (try 30d, 8w, 6m, or an ISO date).`);
+      process.exit(1);
+    }
+    since = parsed;
   }
 
   let adapters = detectedAdapters({ claudeDir: args.claudeDir, codexDir: args.codexDir });
@@ -73,7 +88,7 @@ async function main() {
     const skills = discoverSkills(adapter.skillRoots(args.project));
     const { events, health } = await adapter.loadEvents();
     reports.push({
-      report: buildReport(skills, events, adapter.name, health),
+      report: buildReport(skills, events, adapter.name, health, since),
       skippedSamples: health.skippedSamples,
     });
   }
@@ -82,6 +97,8 @@ async function main() {
     console.log(JSON.stringify(reports.map((r) => r.report), null, 2));
     return;
   }
+
+  console.log(formatWordmark());
 
   for (const { report, skippedSamples } of reports) {
     switch (args.command) {
@@ -97,10 +114,19 @@ async function main() {
   }
 }
 
+function isCliEntrypoint(): boolean {
+  const invoked = process.argv[1];
+  if (!invoked) return false;
+  try {
+    return realpathSync(invoked) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    const base = invoked.split("/").pop();
+    return base === "cli.js" || base === "deadskills";
+  }
+}
+
 // Only run when executed as a CLI, not when imported (e.g. by tests).
-const isEntrypoint =
-  process.argv[1] && import.meta.url.endsWith(process.argv[1].split("/").pop()!);
-if (isEntrypoint) {
+if (isCliEntrypoint()) {
   main().catch((err) => {
     console.error(err instanceof Error ? err.message : err);
     process.exit(1);

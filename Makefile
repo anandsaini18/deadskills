@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install build dev test watch typecheck check run dead json clean link publish-dry
+.PHONY: help install build dev test watch typecheck check run dead json clean link publish-dry release-patch release-minor _release
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
@@ -42,6 +42,17 @@ link: build ## npm link so `deadskills` works globally on this machine
 
 publish-dry: check build ## Dry-run npm publish (verify package contents)
 	npm publish --dry-run
+
+release-patch: ## Bump patch version, commit, tag, push — CI publishes to npm
+	$(MAKE) _release BUMP=patch
+
+release-minor: ## Bump minor version, commit, tag, push — CI publishes to npm
+	$(MAKE) _release BUMP=minor
+
+_release: check
+	@test -z "$$(git status --porcelain -uno)" || { echo "Working tree not clean — commit first."; exit 1; }
+	npm version $(BUMP)
+	git push origin main --follow-tags
 
 clean: ## Remove build artifacts and node_modules
 	rm -rf dist node_modules

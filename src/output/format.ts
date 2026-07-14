@@ -16,6 +16,55 @@ const c = {
 };
 
 const BAR_WIDTH = 24;
+const RULE_WIDTH = 60;
+const UNMATCHED_SHOWN = 8;
+
+/** 34296 → "34,296". */
+function formatInt(n: number): string {
+  return n.toLocaleString("en-US");
+}
+
+/** Humanize token counts: 3525588 → "3.5M", 24099 → "24K". Exported for tests. */
+export function humanTokens(n: number): string {
+  const fmt = (v: number) => String(v >= 10 ? Math.round(v) : Math.round(v * 10) / 10);
+  if (n >= 999_500) return `${fmt(n / 1_000_000)}M`;
+  if (n >= 1_000) return `${fmt(n / 1_000)}K`;
+  return String(n);
+}
+
+/** Dim horizontal rule carrying the agent name — the per-agent section header. */
+function agentRule(agent: string): string {
+  const fill = Math.max(3, RULE_WIDTH - agent.length - 4);
+  return c.dim("── ") + c.bold(agent) + " " + c.dim("─".repeat(fill));
+}
+
+// figlet "ANSI Shadow", pre-rendered: zero runtime deps is a hard rule.
+// Split in two so "DEAD" and "SKILLS" can be colored independently.
+const WORDMARK_DEAD = [
+  "██████╗ ███████╗ █████╗ ██████╗ ",
+  "██╔══██╗██╔════╝██╔══██╗██╔══██╗",
+  "██║  ██║█████╗  ███████║██║  ██║",
+  "██║  ██║██╔══╝  ██╔══██║██║  ██║",
+  "██████╔╝███████╗██║  ██║██████╔╝",
+  "╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ",
+];
+
+const WORDMARK_SKILLS = [
+  "███████╗██╗  ██╗██╗██╗     ██╗     ███████╗",
+  "██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝",
+  "███████╗█████╔╝ ██║██║     ██║     ███████╗",
+  "╚════██║██╔═██╗ ██║██║     ██║     ╚════██║",
+  "███████║██║  ██╗██║███████╗███████╗███████║",
+  "╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝",
+];
+
+export function formatWordmark(): string {
+  const rows = WORDMARK_DEAD.map(
+    (left, i) => c.bold(c.red(left)) + c.bold(c.cyan(WORDMARK_SKILLS[i]))
+  );
+  rows.push(c.dim("💀 find the agent skills you never use"));
+  return rows.join("\n");
+}
 
 function bar(value: number, max: number): string {
   const filled = max > 0 ? Math.round((value / max) * BAR_WIDTH) : 0;
@@ -28,26 +77,40 @@ function pad(s: string, width: number): string {
 
 export function formatReport(report: Report): string {
   const lines: string[] = [];
-  const alive = report.skills.filter((s) => !s.invocations || !s.dead).filter((s) => !s.dead);
-  const dead = report.skills.filter((s) => s.dead);
+  const active = report.skills.filter((s) => s.status === "active");
+  const zombies = report.skills.filter((s) => s.status === "zombie");
+  const dead = report.skills.filter((s) => s.status === "dead");
   const max = Math.max(...report.skills.map((s) => s.invocations), 1);
+  const window = report.windowSince
+    ? ` · since ${report.windowSince.slice(0, 10)}`
+    : "";
 
   lines.push("");
+  lines.push(agentRule(report.agent));
   lines.push(
-    c.bold(`💀 deadskills · ${report.agent}`) +
-      c.dim(` · ${report.sessions} sessions · ${report.assistantTurns} turns analyzed`)
+    c.dim(`${formatInt(report.sessions)} sessions · ${formatInt(report.assistantTurns)} turns analyzed${window}`)
   );
   lines.push(
-    `Context tax: ${c.bold(c.yellow(`~${report.contextTaxPerPrompt} tokens`))}` +
+    `Context tax: ${c.bold(c.yellow(`~${formatInt(report.contextTaxPerPrompt)} tokens`))}` +
       c.dim(` added to every prompt by ${report.skills.length} installed skills`)
   );
   lines.push("");
 
-  for (const s of alive) {
+  for (const s of active) {
     lines.push(
       `  ${c.cyan(pad(s.name, 30))} ${bar(s.invocations, max)} ${String(s.invocations).padStart(4)}×` +
-        c.dim(`  ~${s.estimatedTotalTokens} tok`)
+        c.dim(` ${`~${humanTokens(s.estimatedTotalTokens)}`.padStart(7)} tok`)
     );
+  }
+
+  if (zombies.length > 0) {
+    lines.push("");
+    lines.push(c.bold(c.yellow(`🧟 Zombie skills (${zombies.length}) — used before, silent for 90+ days:`)));
+    for (const s of zombies) {
+      lines.push(
+        `  ${c.yellow(pad(s.name, 30))} ${c.dim(`last used ${s.lastUsed?.slice(0, 10) ?? "?"} · ${formatInt(s.invocations)}× all-time`)}`
+      );
+    }
   }
 
   if (dead.length > 0) {
@@ -55,16 +118,34 @@ export function formatReport(report: Report): string {
     lines.push(c.bold(c.red(`💀 Dead skills (${dead.length}) — installed, never invoked:`)));
     for (const s of dead) {
       lines.push(
-        `  ${c.red(pad(s.name, 30))} ${c.dim(`${s.scope} · costs ~${s.injectionTokens} tok/prompt for nothing`)}`
+        `  ${c.red(pad(s.name, 30))} ${c.dim(`${s.scope} · costs ~${humanTokens(s.injectionTokens)} tok/prompt for nothing`)}`
       );
     }
   }
 
-  const unmatched = Object.entries(report.unmatchedInvocations);
+  const unmatched = Object.entries(report.unmatchedInvocations).sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0])
+  );
   if (unmatched.length > 0) {
     lines.push("");
+    lines.push(c.dim("Unmatched invocations (may include built-in commands):"));
+    const shown = unmatched.slice(0, UNMATCHED_SHOWN);
+    lines.push(c.dim(`  ${shown.map(([n, ct]) => `${n} (${ct}×)`).join(", ")}`));
+    const hidden = unmatched.length - shown.length;
+    if (hidden > 0) {
+      lines.push(c.dim(`  … and ${hidden} more (run with --json for full list)`));
+    }
+  }
+
+  const ambiguous = Object.entries(report.ambiguousInvocations);
+  if (ambiguous.length > 0) {
+    lines.push("");
     lines.push(
-      c.dim(`Invoked but not found locally: ${unmatched.map(([n, ct]) => `${n} (${ct}×)`).join(", ")}`)
+      c.yellow(
+        `⚠ Ambiguous invocations (not attributed): ${ambiguous
+          .map(([n, cands]) => `${n} → {${cands.join(", ")}}`)
+          .join("; ")}`
+      )
     );
   }
 
@@ -86,10 +167,12 @@ export function formatReport(report: Report): string {
 
 export function formatDead(report: Report): string {
   if (report.deadSkills.length === 0) {
-    return `[${report.agent}] No dead skills — everything installed has been used. 🎉`;
+    return `\n${agentRule(report.agent)}\nNo dead skills — everything installed has been used. 🎉`;
   }
   const lines = [
-    c.bold(`💀 [${report.agent}] ${report.deadSkills.length} dead skills (installed, never invoked):`),
+    "",
+    agentRule(report.agent),
+    c.bold(c.red(`💀 ${report.deadSkills.length} dead skills (installed, never invoked):`)),
     "",
   ];
   for (const name of report.deadSkills) lines.push(`  ${name}`);
@@ -104,8 +187,9 @@ export function formatDoctor(
   const total = linesParsed + linesSkipped;
   const pct = total > 0 ? Math.round((linesParsed / total) * 100) : 100;
   const lines = [
-    c.bold(`🩺 ${report.agent}`),
-    `  files: ${files}  lines parsed: ${linesParsed}  skipped: ${linesSkipped}  (${pct}% parsed)`,
+    "",
+    agentRule(report.agent),
+    `  files: ${formatInt(files)}  lines parsed: ${formatInt(linesParsed)}  skipped: ${formatInt(linesSkipped)}  (${pct}% parsed)`,
   ];
   if (skippedSamples.length > 0) {
     lines.push(c.dim("  sample skipped lines (format drift? open an issue with these):"));
