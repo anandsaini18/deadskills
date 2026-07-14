@@ -1,0 +1,45 @@
+{
+  "name": "deadskills",
+  "version": "0.1.0",
+  "description": "💀 Find the agent skills you never use. Local-first, zero-dependency analytics for Claude Code & Codex skills: invocation counts, token cost, dead-weight detection.",
+  "keywords": [
+    "claude-code",
+    "codex",
+    "agent-skills",
+    "skill-usage",
+    "unused-skills",
+    "skill-analytics",
+    "context-window",
+    "token-cost",
+    "claude",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "Mukul",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "deadskills": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/cli.js",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
