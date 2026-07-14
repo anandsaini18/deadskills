@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mukul/deadskills/schema/report.schema.json",
+  "title": "deadskills report",
+  "description": "Canonical per-skill usage report. Versioned. Licensed CC0 — build on it freely.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "agent",
+    "sessions",
+    "assistantTurns",
+    "skills",
+    "deadSkills",
+    "contextTaxPerPrompt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "agent": { "type": "string", "examples": ["claude-code", "codex", "cursor"] },
+    "sessions": { "type": "integer", "minimum": 0 },
+    "assistantTurns": { "type": "integer", "minimum": 0 },
+    "contextTaxPerPrompt": {
+      "type": "integer",
+      "description": "Estimated tokens all installed skill descriptions add to every prompt"
+    },
+    "deadSkills": { "type": "array", "items": { "type": "string" } },
+    "unmatchedInvocations": {
+      "type": "object",
+      "additionalProperties": { "type": "integer" },
+      "description": "Invoked skill names with no matching installed skill"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "invocations", "injectionTokens", "dead"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "scope": { "type": "string", "examples": ["personal", "project", "plugin"] },
+          "invocations": { "type": "integer", "minimum": 0 },
+          "lastUsed": { "type": ["string", "null"], "format": "date-time" },
+          "injectionTokens": { "type": "integer" },
+          "estimatedTotalTokens": { "type": "integer" },
+          "dead": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
