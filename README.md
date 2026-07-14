@@ -1,20 +1,3 @@
-![deadskills](assets/banner.png)
-
-Unused agent skills waste context on every prompt; `deadskills` analyzes your local transcripts to find which skills are active, stale, or safe to delete.
-
-Works with **Claude Code** and **Codex**, auto-detected.
-
-[![npm version](https://img.shields.io/npm/v/deadskills.svg?style=flat-square)](https://www.npmjs.com/package/deadskills)
-[![npm downloads](https://img.shields.io/npm/dw/deadskills.svg?style=flat-square)](https://www.npmjs.com/package/deadskills)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
-
-```bash
-npx deadskills
-```
-
-Example output:
-
 ```
 ██████╗ ███████╗ █████╗ ██████╗ ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗
 ██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝
@@ -22,8 +5,27 @@ Example output:
 ██║  ██║██╔══╝  ██╔══██║██║  ██║╚════██║██╔═██╗ ██║██║     ██║     ╚════██║
 ██████╔╝███████╗██║  ██║██████╔╝███████║██║  ██╗██║███████╗███████╗███████║
 ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
-💀 find the agent skills you never use
+               💀 find the agent skills you never use
+```
 
+> Unused agent skills waste context on **every prompt**. `deadskills` reads your local transcripts and shows which skills earn their seat — and which are dead weight you can delete.
+
+[![npm version](https://img.shields.io/npm/v/deadskills.svg?style=flat-square)](https://www.npmjs.com/package/deadskills)
+[![npm downloads](https://img.shields.io/npm/dw/deadskills.svg?style=flat-square)](https://www.npmjs.com/package/deadskills)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
+
+## Quick start
+
+```bash
+npx deadskills
+```
+
+That's it. No config, no login, no telemetry. Auto-detects **Claude Code** and **Codex**, reads your transcripts locally, prints the report.
+
+Example output:
+
+```
 ── claude-code ─────────────────────────────────────────────
 107 sessions · 34,296 turns analyzed
 Context tax: ~587 tokens added to every prompt by 6 installed skills
@@ -36,10 +38,6 @@ Context tax: ~587 tokens added to every prompt by 6 installed skills
 
 💀 Dead skills (1) — installed, never invoked:
   xcode-project-setup            personal · costs ~49 tok/prompt for nothing
-
-Unmatched invocations (may include built-in commands):
-  model (70×), effort (59×), compact (20×), superpowers:brainstorming (17×), clear (16×), superpowers:systematic-debugging (12×), plugin (9×), superpowers:writing-plans (7×)
-  … and 27 more (run with --json for full list)
 
 
 ── codex ───────────────────────────────────────────────────
@@ -69,12 +67,21 @@ Context tax: ~476 tokens added to every prompt by 5 installed skills
 
 ```bash
 npx deadskills                # full report for all detected agents
-npx deadskills dead           # dead and zombie skills only
+npx deadskills dead           # list dead skills only
 npx deadskills doctor         # verify your transcripts are being read correctly
 npx deadskills --since 30d    # limit to a time window (30d, 8w, 6m, or a date)
 npx deadskills --json         # canonical JSON output (see schema/report.schema.json)
 npx deadskills --agent codex  # one agent only
 ```
+
+## Install
+
+```bash
+npx deadskills               # one-off run, always latest — recommended
+npm install -g deadskills    # global install: run `deadskills` anywhere
+```
+
+Requires Node 18+. Zero runtime dependencies — the whole tool is one ~22 KB file.
 
 ## How it works
 
@@ -82,7 +89,7 @@ npx deadskills --agent codex  # one agent only
 2. Parses session transcripts — JSONL files in `~/.claude/projects` and `~/.codex/sessions`. Skipped lines are counted and surfaced via `doctor`, never silently dropped.
 3. Reports per-skill invocation counts and token cost (injection cost × turns, plus expansion cost × invocations), then flags dead and zombie skills.
 
-Token figures are estimates (~4 chars/token) and upper bounds — prompt caching makes re-reads cheaper, so actual cost is often lower. Close enough to decide which skills to delete.
+Token figures are estimates (~4 chars/token) — directionally right, and real cost is usually lower thanks to prompt caching. Close enough to decide which skills to delete.
 
 **Zero runtime dependencies.** Your transcripts never leave your machine. No network calls, ever.
 
