@@ -1,6 +1,6 @@
 {
   "name": "deadskills",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "💀 Find the agent skills you never use. Local-first, zero-dependency analytics for Claude Code & Codex skills: invocation counts, token cost, dead-weight detection.",
   "keywords": [
     "claude-code",

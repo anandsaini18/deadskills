@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { detectedAdapters } from "./adapters/index.js";
 import { buildReport, parseSince, type Report } from "./analysis/report.js";
 import { discoverSkills } from "./discovery/skills.js";
-import { formatDead, formatDoctor, formatReport } from "./output/format.js";
+import { formatDead, formatDoctor, formatReport, formatWordmark } from "./output/format.js";
 
 const HELP = `
   💀 deadskills — find the agent skills you never use
@@ -97,6 +97,8 @@ async function main() {
     console.log(JSON.stringify(reports.map((r) => r.report), null, 2));
     return;
   }
+
+  console.log(formatWordmark());
 
   for (const { report, skippedSamples } of reports) {
     switch (args.command) {

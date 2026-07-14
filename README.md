@@ -1,6 +1,6 @@
 ![deadskills](assets/banner.png)
 
-Every installed skill injects its name and description into every prompt you send. Skills you never invoke are context tax. `deadskills` reads your local agent transcripts and shows you what's actually getting used, what's coasting, and what you can safely delete.
+Unused agent skills waste context on every prompt; `deadskills` analyzes your local transcripts to find which skills are active, stale, or safe to delete.
 
 Works with **Claude Code** and **Codex**, auto-detected.
 
@@ -13,24 +13,40 @@ Works with **Claude Code** and **Codex**, auto-detected.
 npx deadskills
 ```
 
+Example output:
+
 ```
-💀 deadskills · claude-code · 107 sessions · 34015 turns analyzed
+██████╗ ███████╗ █████╗ ██████╗ ███████╗██╗  ██╗██╗██╗     ██╗     ███████╗
+██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝
+██║  ██║█████╗  ███████║██║  ██║███████╗█████╔╝ ██║██║     ██║     ███████╗
+██║  ██║██╔══╝  ██╔══██║██║  ██║╚════██║██╔═██╗ ██║██║     ██║     ╚════██║
+██████╔╝███████╗██║  ██║██████╔╝███████║██║  ██╗██║███████╗███████╗███████║
+╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
+💀 find the agent skills you never use
+
+── claude-code ─────────────────────────────────────────────
+107 sessions · 34,296 turns analyzed
 Context tax: ~587 tokens added to every prompt by 6 installed skills
 
-  swiftui-expert-skill           ████████████████████████    9×  ~3496926 tok
-  tech-android                   ████████████████░░░░░░░░    6×   ~786845 tok
-  ui-ux-pro-max                  ████████████████░░░░░░░░    6×  ~7958512 tok
-  playstore-requirements         █████████████░░░░░░░░░░░    5×  ~4293595 tok
-  mobile-ios-design              ████████░░░░░░░░░░░░░░░░    3×  ~1876018 tok
+  swiftui-expert-skill           ████████████████████████    9×   ~3.5M tok
+  tech-android                   ████████████████░░░░░░░░    6×   ~793K tok
+  ui-ux-pro-max                  ████████████████░░░░░░░░    6×     ~8M tok
+  playstore-requirements         █████████████░░░░░░░░░░░    5×   ~4.3M tok
+  mobile-ios-design              ████████░░░░░░░░░░░░░░░░    3×   ~1.9M tok
 
 💀 Dead skills (1) — installed, never invoked:
   xcode-project-setup            personal · costs ~49 tok/prompt for nothing
 
+Unmatched invocations (may include built-in commands):
+  model (70×), effort (59×), compact (20×), superpowers:brainstorming (17×), clear (16×), superpowers:systematic-debugging (12×), plugin (9×), superpowers:writing-plans (7×)
+  … and 27 more (run with --json for full list)
 
-💀 deadskills · codex · 7 sessions · 138 turns analyzed
+
+── codex ───────────────────────────────────────────────────
+7 sessions · 138 turns analyzed
 Context tax: ~476 tokens added to every prompt by 5 installed skills
 
-  android-development            ████████████████████████    5×  ~24099 tok
+  android-development            ████████████████████████    5×    ~24K tok
 
 🧟 Zombie skills (2) — used before, silent for 90+ days:
   figma                          last used 2026-04-12 · 4× all-time
