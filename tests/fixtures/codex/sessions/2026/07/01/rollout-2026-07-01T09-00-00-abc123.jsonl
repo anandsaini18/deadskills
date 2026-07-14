@@ -1,0 +1,8 @@
+{"timestamp":"2026-07-01T09:00:00Z","type":"session_meta","payload":{"id":"abc123","cwd":"/Users/test/myproject"}}
+{"timestamp":"2026-07-01T09:00:10Z","type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"run $codex-used on this file"}]}}
+{"timestamp":"2026-07-01T09:00:20Z","type":"response_item","payload":{"type":"function_call","name":"shell","arguments":"{\"command\":[\"cat\",\"/Users/test/.codex/skills/codex-used/SKILL.md\"]}","call_id":"c1"}}
+{"timestamp":"2026-07-01T09:00:25Z","type":"response_item","payload":{"type":"function_call_output","call_id":"c1","output":"..."}}
+{"timestamp":"2026-07-01T09:00:30Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Done, applied the skill."}]}}
+{"timestamp":"2026-07-01T09:00:35Z","type":"event_msg","payload":{"type":"token_count","info":{"total_tokens":1500}}}
+garbage line that is not json
+{"timestamp":"2026-07-01T09:01:00Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Anything else?"}]}}

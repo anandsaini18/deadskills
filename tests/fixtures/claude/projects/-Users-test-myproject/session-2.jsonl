@@ -1,0 +1,2 @@
+{"type":"user","sessionId":"s2","timestamp":"2026-01-05T09:00:00Z","message":{"role":"user","content":"<command-name>/zombie-skill</command-name>"}}
+{"type":"assistant","sessionId":"s2","timestamp":"2026-01-05T09:00:10Z","message":{"role":"assistant","usage":{"input_tokens":400,"output_tokens":80},"content":[{"type":"text","text":"done"}]}}
