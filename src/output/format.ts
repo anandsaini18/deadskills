@@ -62,7 +62,7 @@ export function formatWordmark(): string {
   const rows = WORDMARK_DEAD.map(
     (left, i) => c.bold(c.red(left)) + c.bold(c.cyan(WORDMARK_SKILLS[i]))
   );
-  rows.push(c.dim("💀 find the agent skills you never use"));
+  rows.push(c.dim("find the agent skills you never use"));
   return rows.join("\n");
 }
 
@@ -105,7 +105,7 @@ export function formatReport(report: Report): string {
 
   if (zombies.length > 0) {
     lines.push("");
-    lines.push(c.bold(c.yellow(`🧟 Zombie skills (${zombies.length}) — used before, silent for 90+ days:`)));
+    lines.push(c.bold(c.yellow(`Zombie skills (${zombies.length}): used before, silent for 90+ days`)));
     for (const s of zombies) {
       lines.push(
         `  ${c.yellow(pad(s.name, 30))} ${c.dim(`last used ${s.lastUsed?.slice(0, 10) ?? "?"} · ${formatInt(s.invocations)}× all-time`)}`
@@ -115,7 +115,7 @@ export function formatReport(report: Report): string {
 
   if (dead.length > 0) {
     lines.push("");
-    lines.push(c.bold(c.red(`💀 Dead skills (${dead.length}) — installed, never invoked:`)));
+    lines.push(c.bold(c.red(`Dead skills (${dead.length}): installed, never invoked`)));
     for (const s of dead) {
       lines.push(
         `  ${c.red(pad(s.name, 30))} ${c.dim(`${s.scope} · costs ~${humanTokens(s.injectionTokens)} tok/prompt for nothing`)}`
@@ -142,7 +142,7 @@ export function formatReport(report: Report): string {
     lines.push("");
     lines.push(
       c.yellow(
-        `⚠ Ambiguous invocations (not attributed): ${ambiguous
+        `Ambiguous invocations (not attributed): ${ambiguous
           .map(([n, cands]) => `${n} → {${cands.join(", ")}}`)
           .join("; ")}`
       )
@@ -155,8 +155,8 @@ export function formatReport(report: Report): string {
     lines.push("");
     lines.push(
       c.yellow(
-        `⚠ Parsed ${Math.round((linesParsed / total) * 100)}% of transcript lines — ` +
-          `numbers may undercount. Run \`deadskills doctor\`.`
+        `Parsed ${Math.round((linesParsed / total) * 100)}% of transcript lines. ` +
+          `Numbers may undercount. Run \`deadskills doctor\`.`
       )
     );
   }
@@ -167,12 +167,12 @@ export function formatReport(report: Report): string {
 
 export function formatDead(report: Report): string {
   if (report.deadSkills.length === 0) {
-    return `\n${agentRule(report.agent)}\nNo dead skills — everything installed has been used. 🎉`;
+    return `\n${agentRule(report.agent)}\nNo dead skills. Everything installed has been used.`;
   }
   const lines = [
     "",
     agentRule(report.agent),
-    c.bold(c.red(`💀 ${report.deadSkills.length} dead skills (installed, never invoked):`)),
+    c.bold(c.red(`${report.deadSkills.length} dead skill${report.deadSkills.length === 1 ? "" : "s"} (installed, never invoked):`)),
     "",
   ];
   for (const name of report.deadSkills) lines.push(`  ${name}`);

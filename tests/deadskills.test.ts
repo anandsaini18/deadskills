@@ -288,7 +288,7 @@ describe("terminal wordmark", () => {
       "██║  ██║██╔══╝  ██╔══██║██║  ██║╚════██║██╔═██╗ ██║██║     ██║     ╚════██║",
       "██████╔╝███████╗██║  ██║██████╔╝███████║██║  ██╗██║███████╗███████╗███████║",
       "╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝",
-      "💀 find the agent skills you never use",
+      "find the agent skills you never use",
     ].join("\n");
 
     expect(formatWordmark()).toBe(expected);

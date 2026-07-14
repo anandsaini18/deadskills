@@ -1,6 +1,6 @@
 # Contributing
 
-The highest-value contribution is an **adapter for another agent** (Codex, Cursor, OpenCode, Gemini CLI...). An adapter is one file.
+The highest value contribution is an **adapter for another agent**. An adapter is one file.
 
 ## Adding an adapter
 
@@ -12,11 +12,11 @@ The highest-value contribution is an **adapter for another agent** (Codex, Curso
 4. Add tests in `tests/` covering: detection, event parsing, skill-invocation extraction, garbage-line handling.
 5. `make check` must pass.
 
-Use `src/adapters/claude-code.ts` as the reference implementation.
+Use the existing adapters in `src/adapters/` as reference implementations.
 
 ## Everything else
 
-- Bug fixes and parser updates for transcript format drift are always welcome — include a fixture reproducing the new format.
+- Bug fixes and parser updates for transcript format drift are always welcome. Include a fixture reproducing the new format and paste `deadskills doctor` output in the issue (use the bug report template).
 - Keep the dependency count where it is. New runtime dependencies need a strong reason.
 - The JSON report schema (`schema/report.schema.json`) is versioned: additive changes only within a version; breaking changes bump `schemaVersion`.
 

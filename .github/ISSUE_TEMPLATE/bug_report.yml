@@ -1,0 +1,53 @@
+name: Bug report
+description: Something looks wrong in the report or parser
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Paste `deadskills doctor` output below. It is designed to be safe to share (no local paths in the report).
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: deadskills doctor output
+      description: Run `npx deadskills doctor` and paste the full output
+      placeholder: |
+        ── your-agent ─ ...
+        files: ...  lines parsed: ...  skipped: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What you saw instead
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: deadskills version
+      description: Output of `npm view deadskills version` or the version from your install
+      placeholder: "0.2.0"
+
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Agent
+      options:
+        - Claude Code
+        - Codex
+        - Both
+        - Other
+    validations:
+      required: true
