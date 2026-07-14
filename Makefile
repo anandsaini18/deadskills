@@ -28,7 +28,7 @@ typecheck: ## Type-check without emitting
 
 check: typecheck test ## Typecheck + tests (run before committing)
 
-run: build ## Build and run the full report against YOUR ~/.claude
+run: build ## Build and run the full report against your local agent data
 	node dist/cli.js
 
 dead: build ## Build and show only your dead skills

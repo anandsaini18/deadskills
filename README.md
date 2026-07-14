@@ -5,10 +5,10 @@
 ██║  ██║██╔══╝  ██╔══██║██║  ██║╚════██║██╔═██╗ ██║██║     ██║     ╚════██║
 ██████╔╝███████╗██║  ██║██████╔╝███████║██║  ██╗██║███████╗███████╗███████║
 ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
-               💀 find the agent skills you never use
+               find the agent skills you never use
 ```
 
-> Unused agent skills waste context on **every prompt**. `deadskills` reads your local transcripts and shows which skills earn their seat — and which are dead weight you can delete.
+Every installed skill adds its name and description to every prompt you send. That cost is paid on every message, whether the skill gets used or not. `deadskills` reads your local transcripts and shows which skills earn their seat, and which ones are probably safe to remove.
 
 [![npm version](https://img.shields.io/npm/v/deadskills.svg?style=flat-square)](https://www.npmjs.com/package/deadskills)
 [![npm downloads](https://img.shields.io/npm/dw/deadskills.svg?style=flat-square)](https://www.npmjs.com/package/deadskills)
@@ -17,107 +17,103 @@
 
 ## Quick start
 
+**Requires Node 18+.** Auto detects Claude Code (`~/.claude`) and Codex (`~/.codex`) when those directories exist. No config, no login, no telemetry.
+
 ```bash
 npx deadskills
 ```
 
-That's it. No config, no login, no telemetry. Auto-detects **Claude Code** and **Codex**, reads your transcripts locally, prints the report.
+That is the whole workflow. Everything below is reference.
 
-Example output:
+![Example report from npx deadskills](assets/screenshot.png)
 
+## Install
+
+```bash
+npx deadskills               # one-off run, always latest (recommended)
+npm install -g deadskills    # global install: run deadskills anywhere
 ```
-── claude-code ─────────────────────────────────────────────
-107 sessions · 34,296 turns analyzed
-Context tax: ~587 tokens added to every prompt by 6 installed skills
 
-  swiftui-expert-skill           ████████████████████████    9×   ~3.5M tok
-  tech-android                   ████████████████░░░░░░░░    6×   ~793K tok
-  ui-ux-pro-max                  ████████████████░░░░░░░░    6×     ~8M tok
-  playstore-requirements         █████████████░░░░░░░░░░░    5×   ~4.3M tok
-  mobile-ios-design              ████████░░░░░░░░░░░░░░░░    3×   ~1.9M tok
+From source (development):
 
-💀 Dead skills (1) — installed, never invoked:
-  xcode-project-setup            personal · costs ~49 tok/prompt for nothing
-
-
-── codex ───────────────────────────────────────────────────
-7 sessions · 138 turns analyzed
-Context tax: ~476 tokens added to every prompt by 5 installed skills
-
-  android-development            ████████████████████████    5×    ~24K tok
-
-🧟 Zombie skills (2) — used before, silent for 90+ days:
-  figma                          last used 2026-04-12 · 4× all-time
-  imagegen                       last used 2026-04-12 · 2× all-time
-
-💀 Dead skills (2) — installed, never invoked:
-  playstore-requirements         personal · costs ~126 tok/prompt for nothing
-  tech-android                   personal · costs ~23 tok/prompt for nothing
+```bash
+git clone https://github.com/anandsaini18/deadskills
+cd deadskills
+make install && make link    # deadskills on PATH from local build
 ```
+
+Zero runtime dependencies. The published package is one ~22 KB file you can read in a sitting.
+
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `deadskills` | Full report for all detected agents |
+| `deadskills dead` | List dead skills only |
+| `deadskills doctor` | Parse health: are your transcripts being read correctly? |
+| `deadskills --since 30d` | Limit analysis to a window (`30d`, `8w`, `6m`, or an ISO date) |
+| `deadskills --json` | Machine readable output ([schema](schema/report.schema.json)) |
+| `deadskills --agent <name>` | One agent only (name shown in report header) |
+
+```bash
+npx deadskills
+npx deadskills dead
+npx deadskills doctor
+npx deadskills --since 30d
+npx deadskills --json
+npx deadskills --agent <name>
+```
+
+## What you learn in one run
+
+1. **Your context tax.** One number for how many tokens your installed skills add to every prompt. The rest of the report exists to help you lower it.
+2. **What each skill actually cost you.** Invocation counts from your own transcript history, next to estimated token totals. Grounded in evidence, not vibes.
+3. **What to remove.** Dead skills are named with their per prompt cost. They were probably useful once. If the number looks wrong, run `deadskills doctor` and [open an issue](https://github.com/anandsaini18/deadskills/issues/new?template=bug_report.yml).
+4. **How much history was read.** Session and turn counts show the report is built from real volume, not a toy demo.
+5. **A ranking you can scan in seconds.** Skill names, usage bars, and humanized totals (`~3.5M tok`) so the story is obvious before you read a doc.
 
 ## Skill states
 
 | State | Meaning |
 |-------|---------|
-| active | Invoked at least once — earning its context seat |
-| 🧟 zombie | Invoked before, silent for 90+ days |
-| 💀 dead | Installed, never invoked |
-
-## Commands
-
-```bash
-npx deadskills                # full report for all detected agents
-npx deadskills dead           # list dead skills only
-npx deadskills doctor         # verify your transcripts are being read correctly
-npx deadskills --since 30d    # limit to a time window (30d, 8w, 6m, or a date)
-npx deadskills --json         # canonical JSON output (see schema/report.schema.json)
-npx deadskills --agent codex  # one agent only
-```
-
-## Install
-
-```bash
-npx deadskills               # one-off run, always latest — recommended
-npm install -g deadskills    # global install: run `deadskills` anywhere
-```
-
-Requires Node 18+. Zero runtime dependencies — the whole tool is one ~22 KB file.
+| active | Invoked at least once. Earning its context seat. |
+| zombie | Invoked before, silent for 90+ days |
+| dead | Installed, never invoked |
 
 ## How it works
 
-1. Discovers installed skills per agent (`~/.claude/skills`, `.claude/skills`, plugin dirs) and reads `SKILL.md` frontmatter for name, description, and token cost.
-2. Parses session transcripts — JSONL files in `~/.claude/projects` and `~/.codex/sessions`. Skipped lines are counted and surfaced via `doctor`, never silently dropped.
-3. Reports per-skill invocation counts and token cost (injection cost × turns, plus expansion cost × invocations), then flags dead and zombie skills.
+1. Discovers installed skills from each agent's skill directories and reads `SKILL.md` frontmatter for name, description, and token cost.
+2. Parses session transcripts as JSONL. Skipped lines are counted and surfaced via `doctor`, never silently dropped.
+3. Reports per skill invocation counts and token cost (injection cost × turns, plus expansion cost × invocations), then flags dead and zombie skills.
 
-Token figures are estimates (~4 chars/token) — directionally right, and real cost is usually lower thanks to prompt caching. Close enough to decide which skills to delete.
+Token figures are estimates (~4 chars/token). They are directionally right, and real cost is usually lower thanks to prompt caching. We label every estimate with a tilde because pretending otherwise would defeat the point of the tool.
 
-**Zero runtime dependencies.** Your transcripts never leave your machine. No network calls, ever.
+Your transcripts never leave your machine. No network calls at runtime.
 
-## Supported agents
+## Agents
 
-| Agent | Status |
-|-------|--------|
-| Claude Code | built-in |
-| Codex | built-in |
-| Cursor | [contribute an adapter](CONTRIBUTING.md) |
-| Gemini CLI | [contribute an adapter](CONTRIBUTING.md) |
-| OpenCode | [contribute an adapter](CONTRIBUTING.md) |
+| Agent | Data directory | Status |
+|-------|----------------|--------|
+| Claude Code | `~/.claude` | Supported |
+| Codex | `~/.codex` | Supported |
 
-## Development
+Both adapters auto detect when their data directories exist. More agents are welcome via PR: one adapter file plus fixtures. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```bash
-git clone https://github.com/anandsaini18/deadskills
-cd deadskills
-make install     # install dev deps
-make check       # typecheck + tests
-make run         # build and run against your own ~/.claude
-make help        # all targets
-```
+## More detail
+
+| Doc | When to read it |
+|-----|-----------------|
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Adding an adapter or fixing a parser |
+| [SECURITY.md](SECURITY.md) | Reporting a vulnerability privately |
+| [schema/report.schema.json](schema/report.schema.json) | Building on `--json` output |
+| [Issues](https://github.com/anandsaini18/deadskills/issues) | Bugs (paste `doctor` output) or adapter requests |
 
 ## Contributing
 
-An adapter is one TypeScript file implementing a three-method interface, plus hand-written fixtures. Run `make check` to verify, then open a PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
+An adapter is one TypeScript file implementing a three method interface, plus hand written fixtures. Run `make check` to verify, then open a PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+This tool was built to scratch an itch, and it is young. If a number looks wrong on your machine, run `deadskills doctor` and open an issue with the output. It is designed to be safe to paste. Ideas, corrections, and skepticism are all welcome.
 
 ## License
 
-MIT. The [report schema](schema/report.schema.json) is CC0 — build on it freely.
+MIT. The [report schema](schema/report.schema.json) is CC0, so build on it freely.

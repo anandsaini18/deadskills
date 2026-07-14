@@ -1,7 +1,7 @@
 {
   "name": "deadskills",
   "version": "0.2.0",
-  "description": "💀 Find the agent skills you never use. Local-first, zero-dependency analytics for Claude Code & Codex skills: invocation counts, token cost, dead-weight detection.",
+  "description": "Find the agent skills you never use. Local first, zero dependency analytics for skill usage, token cost, and dead weight detection.",
   "keywords": [
     "claude-code",
     "codex",
@@ -11,8 +11,8 @@
     "skill-analytics",
     "context-window",
     "token-cost",
-    "claude",
-    "cli"
+    "cli",
+    "coding-agent"
   ],
   "homepage": "https://github.com/anandsaini18/deadskills#readme",
   "bugs": {

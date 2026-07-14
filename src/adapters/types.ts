@@ -2,8 +2,8 @@
  * Canonical event model. Every agent adapter converts its native
  * transcript format into a stream of SessionEvents.
  *
- * Adding support for a new agent (Cursor, OpenCode, Gemini CLI...) means
- * writing ONE file that implements `AgentAdapter` — see claude-code.ts
+ * Adding support for a new agent means writing ONE file that implements
+ * `AgentAdapter`. See existing adapters in this directory for reference.
  * and codex.ts for reference implementations.
  */
 
@@ -47,7 +47,7 @@ export interface SkillRoot {
 }
 
 export interface AgentAdapter {
-  /** Machine name, e.g. "claude-code", "codex". */
+  /** Machine name reported in JSON output, e.g. "codex". */
   name: string;
   /** Returns true if this agent's data directory exists on this machine. */
   detect(): boolean;

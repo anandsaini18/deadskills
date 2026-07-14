@@ -6,23 +6,23 @@ import { discoverSkills } from "./discovery/skills.js";
 import { formatDead, formatDoctor, formatReport, formatWordmark } from "./output/format.js";
 
 const HELP = `
-  💀 deadskills — find the agent skills you never use
+  deadskills: find the agent skills you never use
 
   Usage
     $ deadskills            Full usage report for every detected agent
-    $ deadskills dead       Only the unused-skills list
-    $ deadskills doctor     Parse health — is deadskills reading your transcripts correctly?
+    $ deadskills dead       Only the unused skills list
+    $ deadskills doctor     Parse health. Is deadskills reading your transcripts correctly?
 
   Options
     --json            Canonical JSON report array (schema/report.schema.json)
     --since <when>    Only count usage since e.g. 30d, 8w, 6m, or 2026-01-01
-    --agent <name>    Only this agent (claude-code | codex)
-    --claude-dir <p>  Override Claude data dir (default: ~/.claude)
-    --codex-dir <p>   Override Codex data dir (default: ~/.codex)
+    --agent <name>    Only one detected agent (see report header for names)
+    --claude-dir <p>  Override Claude Code data dir (default ~/.claude)
+    --codex-dir <p>   Override Codex data dir (default ~/.codex)
     --project <p>     Project dir for project-scoped skills (default: cwd)
     --help            This help
 
-  Supported agents: Claude Code, Codex — both auto-detected.
+  Detects Claude Code and Codex automatically when ~/.claude or ~/.codex exist.
   100% local. Your transcripts never leave your machine.
 `;
 
