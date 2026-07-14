@@ -42,7 +42,7 @@ export function createClaudeCodeAdapter(claudeDir?: string): AgentAdapter {
       ];
       const pluginsRoot = join(root, "plugins");
       for (const entry of safeReaddir(pluginsRoot)) {
-        roots.push({ dir: join(pluginsRoot, entry, "skills"), scope: "plugin" });
+        roots.push({ dir: join(pluginsRoot, entry, "skills"), scope: "plugin", namespace: entry });
       }
       return roots;
     },
@@ -121,29 +121,36 @@ export function parseLine(
     if (block?.type === "tool_use" && block.name === "Skill") {
       const name = block.input?.skill ?? block.input?.command;
       if (typeof name === "string") {
-        event.skillInvocation = { name: normalizeSkillName(name), source: "auto" };
+        event.skillInvocation = { name: rawSkillName(name), source: "auto" };
       }
     } else if (typeof block?.text === "string") {
       const m = COMMAND_NAME_RE.exec(block.text);
       if (m) {
-        event.skillInvocation = { name: normalizeSkillName(m[1]), source: "explicit" };
+        event.skillInvocation = { name: rawSkillName(m[1]), source: "explicit" };
       }
     }
   }
   if (typeof content === "string") {
     const m = COMMAND_NAME_RE.exec(content);
     if (m) {
-      event.skillInvocation = { name: normalizeSkillName(m[1]), source: "explicit" };
+      event.skillInvocation = { name: rawSkillName(m[1]), source: "explicit" };
     }
   }
 
   return event;
 }
 
-/** "plugin:skill" and "/skill" both resolve to bare skill names for matching. */
+/**
+ * Invocation names are kept RAW (namespace preserved) so attribution can
+ * match fully-qualified names first. Only strip leading "/" and whitespace.
+ */
+export function rawSkillName(name: string): string {
+  return name.trim().replace(/^\//, "").trim();
+}
+
+/** "plugin:skill" and "/skill" both resolve to bare skill names for fallback matching. */
 export function normalizeSkillName(name: string): string {
-  const trimmed = name.trim().replace(/^\//, "");
-  const parts = trimmed.split(":");
+  const parts = rawSkillName(name).split(":");
   return parts[parts.length - 1].trim();
 }
 

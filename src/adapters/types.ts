@@ -42,6 +42,8 @@ export interface LoadResult {
 export interface SkillRoot {
   dir: string;
   scope: string; // "personal" | "project" | "plugin"
+  /** Namespace for qualified names, e.g. plugin name → "plugin:skill". */
+  namespace?: string;
 }
 
 export interface AgentAdapter {

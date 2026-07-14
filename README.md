@@ -1,4 +1,4 @@
-# 💀 deadskills
+![deadskills](assets/banner.png)
 
 Every installed skill injects its name and description into every prompt you send. Skills you never invoke are context tax. `deadskills` reads your local agent transcripts and shows you what's actually getting used, what's coasting, and what you can safely delete.
 

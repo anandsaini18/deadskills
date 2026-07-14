@@ -2,48 +2,90 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/mukul/deadskills/schema/report.schema.json",
   "title": "deadskills report",
-  "description": "Canonical per-skill usage report. Versioned. Licensed CC0 — build on it freely.",
+  "description": "Canonical per-skill usage report (the CLI's --json output is an ARRAY of these, one per detected agent). Versioned. Licensed CC0 — build on it freely.",
   "type": "object",
   "required": [
     "schemaVersion",
     "generatedAt",
     "agent",
+    "windowSince",
     "sessions",
     "assistantTurns",
     "skills",
     "deadSkills",
-    "contextTaxPerPrompt"
+    "zombieSkills",
+    "contextTaxPerPrompt",
+    "parseHealth"
   ],
   "properties": {
     "schemaVersion": { "const": 1 },
     "generatedAt": { "type": "string", "format": "date-time" },
     "agent": { "type": "string", "examples": ["claude-code", "codex", "cursor"] },
+    "windowSince": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Start of the analysis window (--since), or null for all-time"
+    },
     "sessions": { "type": "integer", "minimum": 0 },
     "assistantTurns": { "type": "integer", "minimum": 0 },
     "contextTaxPerPrompt": {
       "type": "integer",
-      "description": "Estimated tokens all installed skill descriptions add to every prompt"
+      "description": "Estimated tokens all installed skill descriptions add to every prompt (chars/4 estimate, upper bound)"
     },
-    "deadSkills": { "type": "array", "items": { "type": "string" } },
+    "deadSkills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Installed, never invoked in the window"
+    },
+    "zombieSkills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Invoked before, but silent for 90+ days"
+    },
     "unmatchedInvocations": {
       "type": "object",
       "additionalProperties": { "type": "integer" },
       "description": "Invoked skill names with no matching installed skill"
     },
+    "ambiguousInvocations": {
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } },
+      "description": "Invocation names matching multiple installed skills — attributed to none; value lists candidate qualified names"
+    },
+    "parseHealth": {
+      "type": "object",
+      "required": ["files", "linesParsed", "linesSkipped"],
+      "properties": {
+        "files": { "type": "integer" },
+        "linesParsed": { "type": "integer" },
+        "linesSkipped": { "type": "integer" }
+      },
+      "description": "Transcript parse accounting; high linesSkipped means the numbers undercount"
+    },
     "skills": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "invocations", "injectionTokens", "dead"],
+        "required": ["name", "invocations", "explicitInvocations", "injectionTokens", "status", "dead"],
         "properties": {
           "name": { "type": "string" },
+          "qualifiedName": {
+            "type": "string",
+            "description": "Namespaced name (e.g. \"my-plugin:pdf\") for plugin-provided skills"
+          },
           "description": { "type": "string" },
           "scope": { "type": "string", "examples": ["personal", "project", "plugin"] },
           "invocations": { "type": "integer", "minimum": 0 },
+          "explicitInvocations": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Invocations via explicit /command or $mention; if this equals invocations, the description never auto-triggers"
+          },
           "lastUsed": { "type": ["string", "null"], "format": "date-time" },
+          "status": { "enum": ["active", "zombie", "dead"] },
           "injectionTokens": { "type": "integer" },
           "estimatedTotalTokens": { "type": "integer" },
-          "dead": { "type": "boolean" }
+          "dead": { "type": "boolean", "description": "Kept for convenience; equals status === \"dead\"" }
         }
       }
     }

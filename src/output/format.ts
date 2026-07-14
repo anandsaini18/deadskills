@@ -28,14 +28,18 @@ function pad(s: string, width: number): string {
 
 export function formatReport(report: Report): string {
   const lines: string[] = [];
-  const alive = report.skills.filter((s) => !s.invocations || !s.dead).filter((s) => !s.dead);
-  const dead = report.skills.filter((s) => s.dead);
+  const active = report.skills.filter((s) => s.status === "active");
+  const zombies = report.skills.filter((s) => s.status === "zombie");
+  const dead = report.skills.filter((s) => s.status === "dead");
   const max = Math.max(...report.skills.map((s) => s.invocations), 1);
+  const window = report.windowSince
+    ? ` · since ${report.windowSince.slice(0, 10)}`
+    : "";
 
   lines.push("");
   lines.push(
     c.bold(`💀 deadskills · ${report.agent}`) +
-      c.dim(` · ${report.sessions} sessions · ${report.assistantTurns} turns analyzed`)
+      c.dim(` · ${report.sessions} sessions · ${report.assistantTurns} turns analyzed${window}`)
   );
   lines.push(
     `Context tax: ${c.bold(c.yellow(`~${report.contextTaxPerPrompt} tokens`))}` +
@@ -43,11 +47,21 @@ export function formatReport(report: Report): string {
   );
   lines.push("");
 
-  for (const s of alive) {
+  for (const s of active) {
     lines.push(
       `  ${c.cyan(pad(s.name, 30))} ${bar(s.invocations, max)} ${String(s.invocations).padStart(4)}×` +
         c.dim(`  ~${s.estimatedTotalTokens} tok`)
     );
+  }
+
+  if (zombies.length > 0) {
+    lines.push("");
+    lines.push(c.bold(c.yellow(`🧟 Zombie skills (${zombies.length}) — used before, silent for 90+ days:`)));
+    for (const s of zombies) {
+      lines.push(
+        `  ${c.yellow(pad(s.name, 30))} ${c.dim(`last used ${s.lastUsed?.slice(0, 10) ?? "?"} · ${s.invocations}× all-time`)}`
+      );
+    }
   }
 
   if (dead.length > 0) {
@@ -65,6 +79,18 @@ export function formatReport(report: Report): string {
     lines.push("");
     lines.push(
       c.dim(`Invoked but not found locally: ${unmatched.map(([n, ct]) => `${n} (${ct}×)`).join(", ")}`)
+    );
+  }
+
+  const ambiguous = Object.entries(report.ambiguousInvocations);
+  if (ambiguous.length > 0) {
+    lines.push("");
+    lines.push(
+      c.yellow(
+        `⚠ Ambiguous invocations (not attributed): ${ambiguous
+          .map(([n, cands]) => `${n} → {${cands.join(", ")}}`)
+          .join("; ")}`
+      )
     );
   }
 

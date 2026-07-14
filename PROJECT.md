@@ -122,11 +122,11 @@ npx deadskills mcp          # run as MCP server
 
 ## 6. Roadmap
 
-**v0.1 (weekend):** Claude Code adapter, skill discovery, dead-skill detection, TUI + JSON output.
-**v0.2:** Token cost attribution, `skill <name>` drill-down, CSV export.
-**v0.3:** MCP server mode, Claude Code plugin, report schema v1 frozen.
-**v0.4 (community):** Codex/Cursor/OpenCode adapters via PRs; trigger-overlap detector (idea #2 — pairwise description similarity warning: "these two skills compete").
-**Later, only if traction:** hosted trend dashboards, team aggregation (the B2B angle in issue #35319 — orgs measuring skill adoption).
+**v0.1 (DONE 2026-07-14):** Claude Code + Codex adapters (auto-detected), skill discovery, dead-skill detection, 🧟 zombie tier (used but silent 90+ days), `--since` window, fully-qualified-first attribution with ambiguity reporting, explicit-vs-auto invocation counts, `doctor` command with parse-health accounting, ANSI report + JSON output, zero runtime deps.
+**v0.2 (close the loop):** `deadskills prune` — interactive archive of dead skills to `~/.claude/skills-archive/` with `restore` (reversible, never rm). Trigger-quality insight surfaced in report ("only fires explicitly — description never auto-triggers; rewrite it"). Per-project breakdown → "move X to project scope" recommendations. `skill <name>` drill-down. `--price` dollar mode. Incremental parse cache (mtime/size).
+**v0.3 (ecosystem):** MCP server mode (agent audits its own context tax — the demo video), Claude Code plugin wrapper, `check --max-tax N` CI gate with exit codes (team/B2B wedge), GitHub Action weekly report.
+**v0.4 (community + fun):** Cursor/OpenCode/Gemini adapters via PRs (ship adapter template + fixture scaffold); `roast` mode (snark about your dead skills — cheap, viral); `--share` redacted markdown/SVG card; trigger-overlap detector ("these two skills compete").
+**Later, only if traction:** generalize to full context-budget breakdown (`deadskills context`: MCP tool tax, CLAUDE.md size, hooks) — hold until the skills story is won; hosted trend dashboards, team aggregation (the B2B angle in issue #35319).
 
 ## 7. Launch Playbook (prompts.chat lessons applied)
 

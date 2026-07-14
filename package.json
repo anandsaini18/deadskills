@@ -1,6 +1,6 @@
 {
   "name": "deadskills",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "💀 Find the agent skills you never use. Local-first, zero-dependency analytics for Claude Code & Codex skills: invocation counts, token cost, dead-weight detection.",
   "keywords": [
     "claude-code",
@@ -14,12 +14,17 @@
     "claude",
     "cli"
   ],
+  "homepage": "https://github.com/anandsaini18/deadskills#readme",
+  "bugs": {
+    "url": "https://github.com/anandsaini18/deadskills/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anandsaini18/deadskills.git"
+  },
   "license": "MIT",
   "author": "Mukul",
   "type": "module",
-  "engines": {
-    "node": ">=18"
-  },
   "bin": {
     "deadskills": "dist/cli.js"
   },
@@ -41,5 +46,8 @@
     "tsup": "^8.3.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

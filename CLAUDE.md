@@ -33,14 +33,14 @@ TypeScript 5 (strict, ESM-only), Node ≥18, **zero runtime dependencies** (deli
 
 ## Current state (2026-07-14)
 
-Zero-dep rewrite + Codex adapter complete. 23 tests passing, typecheck clean, build = single 18 KB ESM file, verified end-to-end against fixtures for both agents in sandbox. Ink/React/meow removed.
+**v0.1 feature-complete.** Zero-dep rewrite, Claude Code + Codex adapters, zombie tier (`status: active|zombie|dead`, 90-day cutoff), `--since` window (30d/8w/6m/ISO), fully-qualified-first attribution (bare-name collisions → `ambiguousInvocations`, attributed to none), explicit-vs-auto invocation counts, `doctor` + parse health. 30 tests passing, typecheck clean, single ~22 KB ESM build, verified e2e against fixtures for both agents.
 
 ## Next steps (in order)
 
 1. **Validate both parsers against real data** — `make run` on a machine with real `~/.claude` and `~/.codex`; use `deadskills doctor` output to find unrecognized line shapes; fix format assumptions (Codex skill-invocation markers especially — they were written from documented observations + heuristics, not verified).
 2. **Reserve the name**: `npm publish` (0.1.0) + create the `deadskills` GitHub repo — name verified free on npm and GitHub 2026-07-14; don't let it get sniped.
 3. Repo topics/description per PROJECT.md §2 (SEO lives in description, not name).
-4. Roadmap: `skill <name>` drill-down (v0.2), incremental parse cache keyed by file mtime/size (v0.2, perf), MCP server mode + Claude Code plugin wrapper (v0.3), zombie tier — used but not in 90d (v0.2). See PROJECT.md §6.
+4. v0.2 headline: `prune` (reversible archive) + trigger-quality insight. Full roadmap: PROJECT.md §6.
 5. Announce in anthropics/claude-code issue #35319 (pre-qualified audience) once v0.1 is on npm.
 
 ## Conventions
